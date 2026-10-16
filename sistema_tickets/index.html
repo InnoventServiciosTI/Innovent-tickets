@@ -1,0 +1,396 @@
+<script>
+  const session = localStorage.getItem("innoventSession");
+
+  if (!session) {
+    window.location.href = "login.html";
+  } else {
+    try {
+      const data = JSON.parse(session);
+
+      if (!data.authenticated) {
+        window.location.href = "login.html";
+      }
+    } catch (error) {
+      localStorage.removeItem("innoventSession");
+
+      window.location.href = "login.html";
+    }
+  }
+</script>
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Sistema responsive de gestión de tickets"
+    />
+    <title>Innovent — Gestión de Tickets</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link
+      rel="shortcut icon"
+      href="assets/images/logo.png"
+      type="image/x-icon"
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="brand-mark">IG</div>
+          <div>
+            <strong>Innovent</strong>
+            <span>Gestión inteligente</span>
+          </div>
+        </div>
+
+        <nav class="main-nav">
+          <button class="nav-item active" data-view="dashboard">
+            ⌂ <span>Dashboard</span>
+          </button>
+          <button class="nav-item" data-view="tickets">
+            ▣ <span>Tickets</span>
+          </button>
+          <button class="nav-item" data-view="new">
+            ＋ <span>Nuevo ticket</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="mini-info">
+            <span class="status-dot"></span>
+            Sistema operativo
+          </div>
+          <button class="nav-item" id="exportBtn">
+            ⇩ <span>Exportar datos</span>
+          </button>
+          <label class="nav-item import-label">
+            ⇧ <span>Importar datos</span>
+            <input type="file" id="importInput" accept=".json" hidden />
+          </label>
+          <button class="nav-item" id="logoutBtn">
+            ⇥ <span>Cerrar sesión</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <button
+            class="icon-btn menu-btn"
+            id="menuBtn"
+            aria-label="Abrir menú"
+          >
+            ☰
+          </button>
+          <div class="page-heading">
+            <span class="eyebrow">CENTRO DE SOPORTE</span>
+            <h1 id="pageTitle">Dashboard</h1>
+          </div>
+          <div class="top-actions">
+            <button class="icon-btn" id="themeBtn" title="Cambiar tema">
+              ☾
+            </button>
+            <button class="primary-btn" id="topNewBtn">＋ Nuevo ticket</button>
+          </div>
+        </header>
+
+        <div class="content-wrap">
+          <section id="dashboardView" class="view active-view">
+            <div class="welcome-card">
+              <div>
+                <span class="eyebrow">PANEL GENERAL</span>
+                <h2>Controla tus solicitudes en un solo lugar.</h2>
+                <p>
+                  Gestiona incidencias, solicitudes y consultas con seguimiento
+                  en tiempo real.
+                </p>
+              </div>
+              <button class="light-btn" data-view-target="new">
+                Crear ticket
+              </button>
+            </div>
+
+            <div class="stats-grid">
+              <article class="stat-card">
+                <div class="stat-icon blue">▣</div>
+                <div>
+                  <span>Total tickets</span><strong id="totalStat">0</strong>
+                </div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon orange">◷</div>
+                <div>
+                  <span>En progreso</span><strong id="progressStat">0</strong>
+                </div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon red">!</div>
+                <div>
+                  <span>Alta prioridad</span><strong id="highStat">0</strong>
+                </div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon green">✓</div>
+                <div>
+                  <span>Resueltos</span><strong id="resolvedStat">0</strong>
+                </div>
+              </article>
+            </div>
+
+            <div class="dashboard-grid">
+              <section class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h3>Tickets recientes</h3>
+                    <p>Últimas solicitudes registradas</p>
+                  </div>
+                  <button class="text-btn" data-view-target="tickets">
+                    Ver todos →
+                  </button>
+                </div>
+                <div id="recentTickets" class="ticket-list"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h3>Resumen por estado</h3>
+                    <p>Distribución actual</p>
+                  </div>
+                </div>
+                <div class="progress-summary">
+                  <div class="summary-row">
+                    <span><i class="legend blue-bg"></i>Abiertos</span
+                    ><strong id="openCount">0</strong>
+                  </div>
+                  <div class="bar"><i id="openBar"></i></div>
+                  <div class="summary-row">
+                    <span><i class="legend orange-bg"></i>En progreso</span
+                    ><strong id="progressCount">0</strong>
+                  </div>
+                  <div class="bar"><i id="progressBar"></i></div>
+                  <div class="summary-row">
+                    <span><i class="legend green-bg"></i>Resueltos</span
+                    ><strong id="resolvedCount">0</strong>
+                  </div>
+                  <div class="bar"><i id="resolvedBar"></i></div>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section id="ticketsView" class="view">
+            <div class="section-intro">
+              <div>
+                <span class="eyebrow">SOPORTE</span>
+                <h2>Todos los tickets</h2>
+                <p>Busca, filtra y actualiza solicitudes.</p>
+              </div>
+              <button class="primary-btn" data-view-target="new">
+                ＋ Nuevo ticket
+              </button>
+            </div>
+
+            <div class="toolbar panel">
+              <div class="search-box">
+                <span>⌕</span
+                ><input
+                  id="searchInput"
+                  type="search"
+                  placeholder="Buscar por ID, título, cliente..."
+                />
+              </div>
+              <select id="statusFilter">
+                <option value="all">Todos los estados</option>
+                <option value="Abierto">Abierto</option>
+                <option value="En progreso">En progreso</option>
+                <option value="Resuelto">Resuelto</option>
+                <option value="Cerrado">Cerrado</option>
+              </select>
+              <select id="priorityFilter">
+                <option value="all">Todas las prioridades</option>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+              <select id="categoryFilter">
+                <option value="all">Todas las categorías</option>
+                <option value="Soporte técnico">Soporte técnico</option>
+                <option value="Facturación">Facturación</option>
+                <option value="Consulta">Consulta</option>
+                <option value="Solicitud">Solicitud</option>
+              </select>
+            </div>
+
+            <div class="panel table-panel">
+              <div class="bulk-bar" id="bulkBar">
+                <span id="selectedCount">0 seleccionados</span>
+                <button class="danger-btn" id="bulkDeleteBtn">
+                  Eliminar seleccionados
+                </button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th><input type="checkbox" id="selectAll" /></th>
+                      <th>ID</th>
+                      <th>Ticket</th>
+                      <th>Cliente</th>
+                      <th>Prioridad</th>
+                      <th>Estado</th>
+                      <th>Fecha</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="ticketsTable"></tbody>
+                </table>
+              </div>
+              <div class="empty-state hidden" id="emptyTickets">
+                No se encontraron tickets con los filtros seleccionados.
+              </div>
+            </div>
+          </section>
+
+          <section id="newView" class="view">
+            <div class="section-intro">
+              <div>
+                <span class="eyebrow">REGISTRO</span>
+                <h2>Crear nuevo ticket</h2>
+                <p>Completa la información para iniciar el seguimiento.</p>
+              </div>
+            </div>
+            <form id="ticketForm" class="panel ticket-form">
+              <div class="form-section">
+                <h3>Información del solicitante</h3>
+                <div class="form-grid">
+                  <label
+                    >Nombre del cliente *<input
+                      name="client"
+                      required
+                      placeholder="Ej. Carlos Pérez"
+                  /></label>
+                  <label
+                    >Correo electrónico<input
+                      name="email"
+                      type="email"
+                      placeholder="cliente@correo.com"
+                  /></label>
+                </div>
+              </div>
+              <div class="form-section">
+                <h3>Detalle de la solicitud</h3>
+                <div class="form-grid">
+                  <label class="full"
+                    >Título del ticket *<input
+                      name="title"
+                      required
+                      maxlength="100"
+                      placeholder="Describe brevemente el problema"
+                  /></label>
+                  <label
+                    >Categoría<select name="category">
+                      <option>Soporte técnico</option>
+                      <option>Facturación</option>
+                      <option>Consulta</option>
+                      <option>Solicitud</option>
+                    </select></label
+                  >
+                  <label
+                    >Prioridad<select name="priority">
+                      <option>Media</option>
+                      <option>Alta</option>
+                      <option>Baja</option>
+                    </select></label
+                  >
+                  <label class="full"
+                    >Descripción *<textarea
+                      name="description"
+                      required
+                      rows="6"
+                      placeholder="Explica detalladamente la solicitud..."
+                    ></textarea>
+                  </label>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="secondary-btn"
+                  data-view-target="tickets"
+                >
+                  Cancelar</button
+                ><button type="submit" class="primary-btn">Crear ticket</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal hidden" id="ticketModal">
+      <div class="modal-card">
+        <button class="modal-close" id="modalClose">×</button>
+        <div id="modalContent"></div>
+      </div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Asesor Virtual -->
+    <button
+      class="advisor-fab"
+      id="advisorFab"
+      aria-label="Abrir asesor virtual"
+    >
+      <span class="advisor-fab-icon">✦</span>
+      <span class="advisor-fab-label">Asesor Virtual</span>
+    </button>
+
+    <section
+      class="advisor-panel"
+      id="advisorPanel"
+      aria-label="Asesor Virtual"
+    >
+      <header class="advisor-header">
+        <div class="advisor-agent">
+          <div class="advisor-avatar">✦</div>
+          <div>
+            <strong>Asistente TicketFlow</strong
+            ><span><i></i> Disponible ahora</span>
+          </div>
+        </div>
+        <button
+          class="advisor-close"
+          id="advisorClose"
+          aria-label="Cerrar asesor"
+        >
+          ×
+        </button>
+      </header>
+      <div class="advisor-body" id="advisorMessages"></div>
+      <div class="advisor-suggestions" id="advisorSuggestions">
+        <button data-advisor="resumen">📊 Resumen</button>
+        <button data-advisor="alta">🚨 Alta prioridad</button>
+        <button data-advisor="crear">🎫 Crear ticket</button>
+        <button data-advisor="ayuda">❓ ¿Qué puedes hacer?</button>
+      </div>
+      <form class="advisor-input" id="advisorForm">
+        <input
+          id="advisorInput"
+          autocomplete="off"
+          placeholder="Escribe tu consulta..."
+          aria-label="Consulta al asesor"
+        />
+        <button type="submit" aria-label="Enviar">➤</button>
+      </form>
+      <div class="advisor-note">
+        Asesor virtual local · Los datos permanecen en este navegador.
+      </div>
+    </section>
+
+    <script src="js/script.js"></script>
+  </body>
+</html>
