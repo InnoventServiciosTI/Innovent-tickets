@@ -1,0 +1,710 @@
+
+/* =========================================
+   LOGIN COMPACTO Y RESPONSIVE
+   Innovent Servicios TI
+========================================= */
+
+/* Variables visuales */
+:root {
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --secondary: #06b6d4;
+  --background: #080d1a;
+  --surface: #111827;
+  --surface-2: #1e293b;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --success: #22c55e;
+  --danger: #f87171;
+  --input-bg: #0b1220;
+  --card-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+/* Configuración general */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 280px;
+  min-height: 100vh;
+  margin: 0;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(139, 92, 246, 0.15),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 85%,
+      rgba(6, 182, 212, 0.12),
+      transparent 35%
+    ),
+    var(--background);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: var(--secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #67e8f9;
+  text-decoration: underline;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 3px;
+}
+
+/* =========================================
+   CONTENEDOR PRINCIPAL
+========================================= */
+
+.login-container {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-x: clip;
+}
+
+/* =========================================
+   TARJETA DE INICIO DE SESIÓN
+========================================= */
+
+.login-card {
+  width: 100%;
+  max-width: 390px;
+  min-width: 0;
+  padding: 25px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  background: rgba(17, 24, 39, 0.96);
+  box-shadow: var(--card-shadow);
+  animation: loginAppear 0.45s ease-out both;
+}
+
+/* =========================================
+   MARCA Y LOGOTIPO
+========================================= */
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--secondary)
+  );
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 5px 18px rgba(139, 92, 246, 0.25);
+}
+
+.login-brand > div,
+.login-brand > span {
+  min-width: 0;
+}
+
+.login-brand h2,
+.login-brand p {
+  margin: 0;
+}
+
+.login-brand h2 {
+  font-size: 15px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.login-brand p {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.login-header {
+  margin-bottom: 18px;
+}
+
+.login-header h1 {
+  margin: 6px 0;
+  font-size: clamp(22px, 5vw, 27px);
+  line-height: 1.2;
+  letter-spacing: -0.6px;
+}
+
+.login-header p {
+  margin: 5px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  color: var(--secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* =========================================
+   SELECTOR DE PERFILES
+========================================= */
+
+.role-section {
+  min-width: 0;
+  margin: 0 0 17px;
+  padding: 0;
+  border: 0;
+}
+
+.role-section legend {
+  margin-bottom: 9px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.role-card {
+  position: relative;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.role-card input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.role-content {
+  min-height: 82px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 6px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--input-bg);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.role-icon {
+  width: 23px;
+  height: 23px;
+  display: block;
+  color: var(--secondary);
+}
+
+.role-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.role-title {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.role-description {
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* Perfil seleccionado */
+.role-card:has(input:checked) .role-content {
+  border-color: var(--primary);
+  background: rgba(139, 92, 246, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.12);
+}
+
+.role-card input:focus-visible + .role-content {
+  outline: 2px solid var(--secondary);
+  outline-offset: 3px;
+}
+
+/* Alternativa para navegadores sin :has() */
+@supports not selector(.role-card:has(input:checked)) {
+  .role-card input:checked + .role-content {
+    border-color: var(--primary);
+    background: rgba(139, 92, 246, 0.13);
+  }
+}
+
+@media (hover: hover) {
+  .role-card:hover .role-content {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+  }
+}
+
+/* =========================================
+   CAMPOS DEL FORMULARIO
+========================================= */
+
+.login-field {
+  min-width: 0;
+  margin-bottom: 13px;
+}
+
+.login-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.login-field input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 14px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.login-field input::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.login-field input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.14);
+}
+
+.login-field input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* =========================================
+   CAMPO DE CONTRASEÑA
+========================================= */
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.password-wrapper input {
+  padding-right: 46px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 5px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: var(--text);
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.password-toggle svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* =========================================
+   OPCIONES DEL LOGIN
+========================================= */
+
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 5px 0 16px;
+  font-size: 11px;
+}
+
+.remember-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.remember-option input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.login-options a {
+  overflow-wrap: anywhere;
+}
+
+/* =========================================
+   BOTÓN DE ACCESO
+========================================= */
+
+.login-btn {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(
+    110deg,
+    var(--primary),
+    #6d5dfc,
+    var(--secondary)
+  );
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.2);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.login-btn:hover {
+  box-shadow: 0 9px 24px rgba(124, 58, 237, 0.3);
+  transform: translateY(-1px);
+}
+
+.login-btn:active {
+  transform: scale(0.98);
+}
+
+.login-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+/* =========================================
+   MENSAJES DEL FORMULARIO
+========================================= */
+
+.login-message {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.login-message:empty {
+  display: none;
+}
+
+.login-message.error {
+  color: var(--danger);
+}
+
+.login-message.success {
+  color: var(--success);
+}
+
+/* =========================================
+   PIE DE PÁGINA
+========================================= */
+
+.login-footer {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.login-footer span,
+.login-footer small {
+  display: block;
+}
+
+.login-footer span {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.login-footer small {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* =========================================
+   ANIMACIÓN
+========================================= */
+
+@keyframes loginAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================
+   RESPONSIVE: TABLETAS Y PORTÁTILES
+========================================= */
+
+@media (min-width: 768px) {
+  .login-container {
+    padding: 32px 24px;
+  }
+
+  .login-card {
+    max-width: 390px;
+  }
+}
+
+/* =========================================
+   RESPONSIVE: MÓVILES
+========================================= */
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 16px 12px;
+  }
+
+  .login-card {
+    max-width: 360px;
+    padding: 21px 17px;
+    border-radius: 16px;
+  }
+
+  .login-header h1 {
+    font-size: 23px;
+  }
+
+  .role-content {
+    min-height: 78px;
+    padding: 9px 5px;
+  }
+}
+
+/* =========================================
+   RESPONSIVE: MÓVILES PEQUEÑOS
+========================================= */
+
+@media (max-width: 360px) {
+  .login-container {
+    padding: 12px 8px;
+  }
+
+  .login-card {
+    padding: 18px 12px;
+    border-radius: 14px;
+  }
+
+  .login-brand {
+    gap: 8px;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .login-header h1 {
+    font-size: 21px;
+  }
+
+  .role-options {
+    gap: 6px;
+  }
+
+  .role-content {
+    min-height: 76px;
+    padding: 8px 4px;
+  }
+
+  .role-title {
+    font-size: 11px;
+  }
+
+  .role-description {
+    font-size: 9px;
+  }
+
+  .login-options {
+    align-items: flex-start;
+    font-size: 10px;
+  }
+}
+
+/* =========================================
+   RESPONSIVE: PANTALLAS MUY ESTRECHAS
+========================================= */
+
+@media (max-width: 300px) {
+  .login-container {
+    padding: 8px 5px;
+  }
+
+  .login-card {
+    padding: 15px 9px;
+  }
+
+  .login-header h1 {
+    font-size: 19px;
+  }
+
+  .role-options {
+    gap: 5px;
+  }
+
+  .role-content {
+    min-height: 72px;
+  }
+
+  .role-description {
+    font-size: 8px;
+  }
+
+  .login-options {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* =========================================
+   RESPONSIVE: PANTALLAS DE POCA ALTURA
+========================================= */
+
+@media (max-height: 650px) and (min-width: 481px) {
+  .login-container {
+    align-items: flex-start;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .login-card {
+    margin-block: 8px;
+  }
+}
+
+/* En móviles horizontales, permitir desplazamiento vertical */
+@media (max-height: 500px) and (orientation: landscape) {
+  .login-container {
+    align-items: flex-start;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .login-card {
+    margin-block: 0;
+  }
+}
+
+/* =========================================
+   ACCESIBILIDAD: MENOS MOVIMIENTO
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
