@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101426" />
+    <meta
+      name="description"
+      content="Panel de usuario de Innovent Servicios TI para gestionar solicitudes de soporte técnico."
+    />
+
+    <title>Mi panel | Innovent Servicios TI</title>
+
+    <link rel="stylesheet" href="./assets/css/usuario.css" />
+    <link rel="stylesheet" href="./assets/css/responsiveuser.css" />
+    <link rel="icon" href="./assets/images/logo.png" type="image/png" />
+  </head>
+
+  <body>
+    <header class="user-topbar">
+      <div class="user-brand">
+        <div class="user-brand-mark">
+          <img
+            src="./assets/images/logo.png"
+            alt="Logo de Innovent Servicios TI"
+          />
+        </div>
+        <div>
+          <strong>Innovent Servicios TI</strong>
+          <!--<small>Portal de usuario</small>-->
+        </div>
+      </div>
+
+      <div class="user-actions">
+        <!--<span class="user-name" id="headerUserName">Usuario</span>-->
+        <button type="button" class="user-button danger" id="logoutButton">
+          <a href="./login.html">Cerrar sesión</a>
+        </button>
+      </div>
+    </header>
+
+    <main class="user-main">
+      <section class="user-welcome">
+        <h1 id="welcomeTitle">Anonimo.</h1>
+        <p>
+          Consulta el estado de tus solicitudes y crea nuevos tickets de
+          soporte.
+        </p>
+      </section>
+
+      <section class="user-panel">
+        <div class="user-panel-header">
+          <div>
+            <h2>Crear solicitud de tickets</h2>
+            <p>Completa los campos para registrar tu incidencia.</p>
+          </div>
+        </div>
+
+        <form id="ticketForm">
+          <div class="user-form-grid">
+            <div class="user-form-field">
+              <label for="ticketSubject">Asunto *</label>
+              <input
+                id="ticketSubject"
+                name="subject"
+                maxlength="120"
+                required
+                placeholder="Ej. Equipo no enciende"
+              />
+            </div>
+
+            <div class="user-form-field">
+              <label for="ticketCategory">Categoría *</label>
+              <select id="ticketCategory" name="category" required>
+                <option value="">Selecciona una categoría</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Software">Software</option>
+                <option value="Redes e Internet">Redes e Internet</option>
+                <option value="Cuentas y acceso">Cuentas y acceso</option>
+                <option value="Seguridad informática">
+                  Seguridad informática
+                </option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="user-form-field">
+              <label for="ticketPriority">Prioridad *</label>
+              <select id="ticketPriority" name="priority" required>
+                <option value="Baja">Baja</option>
+                <option value="Media" selected>Media</option>
+                <option value="Alta">Alta</option>
+                <option value="Crítica">Crítica</option>
+              </select>
+            </div>
+
+            <div class="user-form-field">
+              <label for="ticketContact">Medio de contacto *</label>
+              <select id="ticketContact" name="contact" required>
+                <option value="">Selecciona una opción</option>
+                <option value="Correo electrónico">Correo electrónico</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Llamada telefónica">Llamada telefónica</option>
+              </select>
+            </div>
+
+            <div class="user-form-field full-width">
+              <label for="ticketDescription">Descripción *</label>
+              <textarea
+                id="ticketDescription"
+                name="description"
+                maxlength="2000"
+                required
+                placeholder="Describe el problema y cuándo comenzó."
+              ></textarea>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="user-button primary"
+            id="createTicketButton"
+          >
+            Enviar solicitud
+          </button>
+          <p
+            class="user-notice"
+            id="ticketMessage"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </form>
+      </section>
+
+      <section class="user-panel">
+        <div class="user-panel-header">
+          <div>
+            <h2>Historial de mis tickets</h2>
+            <p>Consulta tus solicitudes y su estado actual.</p>
+          </div>
+          <button type="button" class="user-button" id="refreshTickets">
+            Actualizar historial
+          </button>
+        </div>
+
+        <div class="user-table-wrap">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Ticket</th>
+                <th>Categoría</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="userTicketList">
+              <tr>
+                <td colspan="6" class="user-empty">Cargando tickets...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p
+          class="user-notice"
+          id="historyMessage"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </section>
+    </main>
+
+    <footer class="user-footer">
+      Innovent Servicios TI · Sistema de gestión de tickets
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        "use strict";
+
+        const SESSION_KEY = "innoventSession";
+        const TICKETS_KEY = "innoventTickets";
+        const $ = (id) => document.getElementById(id);
+
+        let session = null;
+
+        try {
+          session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+        } catch (error) {
+          console.error("Error leyendo la sesión:", error);
+        }
+
+        if (
+          !session ||
+          session.authenticated !== true ||
+          !session.user ||
+          session.user.role !== "user"
+        ) {
+          window.location.replace("./login.htmllogin.html");
+          return;
+        }
+
+        const currentUser = session.user;
+        const userName = String(currentUser.name || "Usuario");
+        const userEmail = String(currentUser.email || "")
+          .trim()
+          .toLowerCase();
+
+        $("welcomeTitle").textContent = `Hola, ${userName}`;
+        $("headerUserName").textContent = userName;
+
+        function getAllTickets() {
+          try {
+            const data = JSON.parse(localStorage.getItem(TICKETS_KEY) || "[]");
+
+            if (Array.isArray(data)) return data;
+            if (data && Array.isArray(data.tickets)) return data.tickets;
+
+            return [];
+          } catch (error) {
+            console.error("Error leyendo los tickets:", error);
+            return [];
+          }
+        }
+
+        function saveAllTickets(tickets) {
+          localStorage.setItem(TICKETS_KEY, JSON.stringify(tickets));
+        }
+
+        function isMine(ticket) {
+          const email = String(ticket.userEmail || ticket.email || "")
+            .trim()
+            .toLowerCase();
+
+          return userEmail !== "" && email === userEmail;
+        }
+
+        function getMyTickets() {
+          return getAllTickets().filter((ticket) => ticket && isMine(ticket));
+        }
+
+        function getStatus(ticket) {
+          return String(ticket.status || ticket.estado || "Pendiente").trim();
+        }
+
+        function isClosed(ticket) {
+          const status = getStatus(ticket).toLowerCase();
+
+          return [
+            "cerrado",
+            "cerrada",
+            "resuelto",
+            "resuelta",
+            "completado",
+            "completada",
+            "closed",
+            "resolved",
+          ].includes(status);
+        }
+
+        function showNotice(element, message, type = "") {
+          element.textContent = message;
+          element.className = "user-notice" + (type ? " " + type : "");
+        }
+
+        function addCell(row, value) {
+          const cell = document.createElement("td");
+          cell.textContent =
+            value == null || value === "" ? "—" : String(value);
+          row.appendChild(cell);
+        }
+
+        function formatDate(value) {
+          if (!value) return "Sin fecha";
+
+          const date = new Date(value);
+          return Number.isNaN(date.getTime())
+            ? "Sin fecha"
+            : date.toLocaleDateString("es-CO");
+        }
+
+        function renderTickets() {
+          const tickets = getMyTickets().sort((a, b) => {
+            const dateA = new Date(a.createdAt || 0).getTime() || 0;
+            const dateB = new Date(b.createdAt || 0).getTime() || 0;
+            return dateB - dateA;
+          });
+
+          const openCount = tickets.filter(
+            (ticket) => !isClosed(ticket),
+          ).length;
+
+          $("totalTickets").textContent = tickets.length;
+          $("openTickets").textContent = openCount;
+          $("resolvedTickets").textContent = tickets.length - openCount;
+
+          const list = $("userTicketList");
+          list.replaceChildren();
+
+          if (!tickets.length) {
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+            cell.colSpan = 6;
+            cell.className = "user-empty";
+            cell.textContent = "Todavía no tienes tickets registrados.";
+            row.appendChild(cell);
+            list.appendChild(row);
+            return;
+          }
+
+          tickets.forEach((ticket) => {
+            const row = document.createElement("tr");
+
+            addCell(row, ticket.id || ticket.ticketId);
+            addCell(row, ticket.subject || ticket.title || ticket.asunto);
+            addCell(row, ticket.category || ticket.categoria);
+            addCell(row, ticket.priority || ticket.prioridad || "Media");
+
+            const statusCell = document.createElement("td");
+            const badge = document.createElement("span");
+            badge.className =
+              "ticket-status " +
+              (isClosed(ticket) ? "status-closed" : "status-open");
+            badge.textContent = getStatus(ticket);
+            statusCell.appendChild(badge);
+            row.appendChild(statusCell);
+
+            addCell(row, formatDate(ticket.createdAt || ticket.fechaCreacion));
+            list.appendChild(row);
+          });
+        }
+
+        $("ticketForm").addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const form = event.currentTarget;
+          const message = $("ticketMessage");
+          showNotice(message, "");
+
+          if (!userEmail) {
+            showNotice(
+              message,
+              "Tu sesión no contiene un correo electrónico. Contacta al administrador.",
+              "error",
+            );
+            return;
+          }
+
+          if (!form.reportValidity()) return;
+
+          const subject = $("ticketSubject").value.trim();
+          const category = $("ticketCategory").value;
+          const priority = $("ticketPriority").value;
+          const contact = $("ticketContact").value;
+          const description = $("ticketDescription").value.trim();
+
+          if (!subject || !category || !priority || !contact || !description) {
+            showNotice(
+              message,
+              "Completa todos los campos obligatorios.",
+              "error",
+            );
+            return;
+          }
+
+          const button = $("createTicketButton");
+          button.disabled = true;
+
+          try {
+            const tickets = getAllTickets();
+
+            const newTicket = {
+              id: "TCK-" + Date.now(),
+              userEmail,
+              userName,
+              subject,
+              category,
+              priority,
+              contact,
+              description,
+              status: "Pendiente",
+              createdAt: new Date().toISOString(),
+            };
+
+            tickets.push(newTicket);
+            saveAllTickets(tickets);
+
+            form.reset();
+            $("ticketPriority").value = "Media";
+
+            renderTickets();
+
+            showNotice(
+              message,
+              `Ticket ${newTicket.id} creado correctamente.`,
+              "success",
+            );
+
+            showNotice(
+              $("historyMessage"),
+              "Historial actualizado.",
+              "success",
+            );
+          } catch (error) {
+            console.error("Error guardando ticket:", error);
+            showNotice(
+              message,
+              "No se pudo guardar el ticket en este navegador.",
+              "error",
+            );
+          } finally {
+            button.disabled = false;
+          }
+        });
+
+        $("refreshTickets").addEventListener("click", () => {
+          renderTickets();
+          showNotice($("historyMessage"), "Historial actualizado.", "success");
+        });
+
+        window.addEventListener("storage", (event) => {
+          if (event.key === TICKETS_KEY) renderTickets();
+
+          if (event.key === SESSION_KEY && !event.newValue) {
+            window.location.replace("./login.html");
+          }
+        });
+
+        $("logoutButton").addEventListener("click", () => {
+          localStorage.removeItem(SESSION_KEY);
+          window.location.replace("./login.html");
+        });
+
+        renderTickets();
+      });
+    </script>
+  </body>
+</html>

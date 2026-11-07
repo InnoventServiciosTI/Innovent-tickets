@@ -1,0 +1,599 @@
+  <!--
+    VALIDACIÓN INICIAL DE SESIÓN
+    Debe ejecutarse antes de mostrar el panel.
+    La autorización definitiva debe realizarse en el servidor.
+  -->
+  <script>
+    (() => {
+      "use strict";
+
+      document.documentElement.style.visibility = "hidden";
+
+      const LOGIN_URL = "./login.html";
+      const USER_URL = "./usuario.html";
+      const SESSION_KEY = "innoventSession";
+
+      try {
+        const rawSession = localStorage.getItem(SESSION_KEY);
+
+        if (!rawSession) {
+          window.location.replace(LOGIN_URL);
+          return;
+        }
+
+        const session = JSON.parse(rawSession);
+        const user = session?.user || null;
+        const role = String(user?.role || session?.role || "")
+          .trim()
+          .toLowerCase();
+
+        if (!session || session.authenticated !== true || !user) {
+          localStorage.removeItem(SESSION_KEY);
+          window.location.replace(LOGIN_URL);
+          return;
+        }
+
+        if (role !== "admin") {
+          if (role === "user") {
+            window.location.replace(USER_URL);
+          } else {
+            window.location.replace(LOGIN_URL);
+          }
+
+          return;
+        }
+
+        document.documentElement.style.visibility = "visible";
+      } catch (error) {
+        console.error("Error validando la sesión:", error);
+        window.location.replace(LOGIN_URL);
+      }
+    })();
+  </script>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="Panel administrativo de Innovent Servicios TI para gestionar tickets de soporte, incidencias y solicitudes."
+  >
+  <meta name="theme-color" content="#101426">
+
+  <title>Innovent | Gestión de Tickets</title>
+
+  <link rel="stylesheet" href="./assets/css/admin.css">
+  <link rel="stylesheet" href="./assets/css/responsiveadmin.css">
+  <link rel="shortcut icon" href="./assets/images/logo.png" type="image/png">
+</head>
+
+<body>
+
+  <header class="user-topbar">
+      <div class="user-brand">
+        <div class="user-brand-mark">
+          <img
+            src="./assets/images/logo.png"
+            alt="Logo de Innovent Servicios TI"
+          />
+        </div>
+        <div>
+          <strong>Innovent Servicios TI</strong>
+          <!--<small>Portal de usuario</small>-->
+        </div>
+      </div>
+
+      <div class="user-actions">
+        <!--<span class="user-name" id="headerUserName">Usuario</span>-->
+        <button type="button" class="user-button danger" id="logoutButton">
+          <a href="./login.html">Cerrar sesión</a
+        </button>
+      </div>
+    </header>
+
+  <a class="skip-link" href="#mainContent">
+    Ir al contenido principal
+  </a>
+
+  <div class="app-shell">
+
+    <!-- ================================================
+         BARRA LATERAL
+    ================================================= -->
+    <aside
+      class="sidebar"
+      id="sidebar"
+      aria-label="Menú principal"
+    >
+      <!--<div class="brand">
+        <div>
+          <!--<strong>Innovent Servicios TI</strong>
+          <span></span>
+        </div>
+      </div>-->
+
+      <nav class="main-nav" aria-label="Navegación del panel">
+        <button
+          type="button"
+          class="nav-item active"
+          data-view="dashboard"
+          aria-current="page"
+        >
+          <span aria-hidden="true">⌂</span>
+          <span>Inicio</span>
+        </button>
+
+        <button
+          type="button"
+          class="nav-item"
+          data-view="tickets"
+        >
+          <span aria-hidden="true">▣</span>
+          <span>Tickets</span>
+        </button>
+
+        <button
+          type="button"
+          class="nav-item"
+          data-view="new"
+        >
+          <span aria-hidden="true">＋</span>
+          <span>Nuevo ticket</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="mini-info">
+          <span class="status-dot" aria-hidden="true"></span>
+          Sistema operativo
+        </div>
+
+        <button type="button" class="nav-item" id="exportBtn">
+          <span aria-hidden="true">⇩</span>
+          <span>Exportar datos</span>
+        </button>
+
+        <label class="nav-item import-label" for="importInput">
+          <span aria-hidden="true">⇧</span>
+          <span>Importar datos</span>
+          <input
+            type="file"
+            id="importInput"
+            accept=".json,application/json"
+            hidden
+          >
+        </label>
+
+        <button type="button" class="nav-item" id="logoutBtn">
+          <span aria-hidden="true">⇥</span>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ================================================
+         CONTENIDO PRINCIPAL
+    ================================================= -->
+    <main class="main-content" id="mainContent">
+
+      <div class="content-wrap">
+
+        <!-- ============================================
+             DASHBOARD
+        ============================================= -->
+        <section
+          id="dashboardView"
+          class="view active-view"
+          aria-labelledby="dashboardHeading"
+        >
+          <div class="welcome-card">
+            <div>
+              <span class="eyebrow">PANEL ADMINISTRADOR</span>
+
+              <p>
+                Gestiona incidencias, solicitudes y consultas
+                con seguimiento desde el panel administrativo.
+              </p>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-icon blue" aria-hidden="true">▣</div>
+              <div>
+                <span>Total tickets</span>
+                <strong id="totalStat">0</strong>
+              </div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-icon orange" aria-hidden="true">◷</div>
+              <div>
+                <span>En progreso</span>
+                <strong id="progressStat">0</strong>
+              </div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-icon red" aria-hidden="true">!</div>
+              <div>
+                <span>Alta prioridad</span>
+                <strong id="highStat">0</strong>
+              </div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-icon green" aria-hidden="true">✓</div>
+              <div>
+                <span>Resueltos</span>
+                <strong id="resolvedStat">0</strong>
+              </div>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+
+            <section class="panel" aria-labelledby="recentHeading">
+              <div class="panel-head">
+                <div>
+                  <h3 id="recentHeading">Tickets recientes</h3>
+                  <p>Últimas solicitudes registradas</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="text-btn"
+                  data-view-target="tickets"
+                >
+                  Ver todos →
+                </button>
+              </div>
+
+              <div
+                id="recentTickets"
+                class="ticket-list"
+                aria-live="polite"
+              ></div>
+            </section>
+
+            <section class="panel" aria-labelledby="summaryHeading">
+              <div class="panel-head">
+                <div>
+                  <h3 id="summaryHeading">Resumen por estado</h3>
+                  <p>Distribución actual</p>
+                </div>
+              </div>
+
+              <div class="progress-summary">
+                <div class="summary-row">
+                  <span>
+                    <i class="legend blue-bg" aria-hidden="true"></i>
+                    Abiertos
+                  </span>
+                  <strong id="openCount">0</strong>
+                </div>
+
+                <div
+                  class="bar"
+                  role="progressbar"
+                  aria-label="Porcentaje de tickets abiertos"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  <i id="openBar"></i>
+                </div>
+
+                <div class="summary-row">
+                  <span>
+                    <i class="legend orange-bg" aria-hidden="true"></i>
+                    En progreso
+                  </span>
+                  <strong id="progressCount">0</strong>
+                </div>
+
+                <div
+                  class="bar"
+                  role="progressbar"
+                  aria-label="Porcentaje de tickets en progreso"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  <i id="progressBar"></i>
+                </div>
+
+                <div class="summary-row">
+                  <span>
+                    <i class="legend green-bg" aria-hidden="true"></i>
+                    Resueltos o cerrados
+                  </span>
+                  <strong id="resolvedCount">0</strong>
+                </div>
+
+                <div
+                  class="bar"
+                  role="progressbar"
+                  aria-label="Porcentaje de tickets resueltos o cerrados"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  <i id="resolvedBar"></i>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </section>
+
+        <!-- ============================================
+             LISTADO DE TICKETS
+        ============================================= -->
+        <section
+          id="ticketsView"
+          class="view"
+          aria-labelledby="ticketsHeading"
+          aria-hidden="true"
+        >
+          <div class="section-intro">
+            <div>
+              <!--<span class="eyebrow">SOPORTE</span>-->
+              <h2 id="ticketsHeading">Historial de Tickets</h2>
+              <p>Busca, filtra y actualiza solicitudes.</p>
+            </div>
+
+            <!--<button
+              type="button"
+              class="primary-btn"
+              data-view-target="new"
+            >
+              ＋ Nuevo ticket
+            </button>-->
+          </div>
+
+          <div class="toolbar panel">
+            <div class="search-box">
+              <span aria-hidden="true">⌕</span>
+
+              <input
+                id="searchInput"
+                type="search"
+                aria-label="Buscar tickets"
+                placeholder="Buscar por ID, título, cliente..."
+                autocomplete="off"
+              >
+            </div>
+
+            <select
+              id="statusFilter"
+              aria-label="Filtrar por estado"
+            >
+              <option value="all">Todos los estados</option>
+              <option value="Abierto">Abierto</option>
+              <option value="En progreso">En progreso</option>
+              <option value="Resuelto">Resuelto</option>
+              <option value="Cerrado">Cerrado</option>
+            </select>
+
+            <select
+              id="priorityFilter"
+              aria-label="Filtrar por prioridad"
+            >
+              <option value="all">Todas las prioridades</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Baja">Baja</option>
+            </select>
+
+            <select
+              id="categoryFilter"
+              aria-label="Filtrar por categoría"
+            >
+              <option value="all">Todas las categorías</option>
+              <option value="Soporte técnico">Soporte técnico</option>
+              <option value="Facturación">Facturación</option>
+              <option value="Consulta">Consulta</option>
+              <option value="Solicitud">Solicitud</option>
+            </select>
+          </div>
+
+          <div class="panel table-panel">
+
+            <div class="bulk-bar hidden" id="bulkBar">
+              <span id="selectedCount" aria-live="polite">
+                0 seleccionados
+              </span>
+
+              <button
+                type="button"
+                class="danger-btn"
+                id="bulkDeleteBtn"
+              >
+                Eliminar seleccionados
+              </button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <caption class="visually-hidden">
+                  Listado de tickets de soporte de Innovent
+                </caption>
+
+                <thead>
+                  <tr>
+                    <th scope="col">
+                      <input
+                        type="checkbox"
+                        id="selectAll"
+                        aria-label="Seleccionar todos los tickets visibles"
+                      >
+                    </th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Ticket</th>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">Prioridad</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Acciones</th>
+                  </tr>
+                </thead>
+
+                <tbody id="ticketsTable"></tbody>
+              </table>
+            </div>
+
+            <div
+              class="empty-state hidden"
+              id="emptyTickets"
+              role="status"
+            >
+              No se encontraron tickets con los filtros seleccionados.
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================================================
+       MODAL DE DETALLES
+  ================================================= -->
+  <div
+    class="modal hidden"
+    id="ticketModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="ticketModalTitle"
+    aria-hidden="true"
+  >
+    <div class="modal-card">
+      <button
+        type="button"
+        class="modal-close"
+        id="modalClose"
+        aria-label="Cerrar detalles del ticket"
+      >
+        ×
+      </button>
+
+      <div id="modalContent">
+        <h2 id="ticketModalTitle">Detalle del ticket</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       NOTIFICACIONES
+  ================================================= -->
+  <div
+    class="toast-container"
+    id="toastContainer"
+    aria-live="polite"
+    aria-atomic="true"
+  ></div>
+
+  <!-- ================================================
+       ASESOR VIRTUAL
+  ================================================= -->
+  <button
+    type="button"
+    class="advisor-fab"
+    id="advisorFab"
+    aria-label="Abrir asesor virtual"
+    aria-controls="advisorPanel"
+    aria-expanded="false"
+  >
+    <span class="advisor-fab-icon" aria-hidden="true"><svg  xmlns="http://www.w3.org/2000/svg" width="24" height="24"  
+fill="currentColor" viewBox="0 0 24 24" >
+<!--Boxicons v3.0.8 https://boxicons.com | License  https://docs.boxicons.com/free-->
+<path d="M21 17V6c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v11c0 .37.11.7.28 1H2v2h20v-2h-1.28c.17-.3.28-.63.28-1M5 6h14v11-1H5z"></path>
+</svg></span>
+    <span class="advisor-fab-label">Asesor Virtual</span>
+  </button>
+
+  <section
+    class="advisor-panel hidden"
+    id="advisorPanel"
+    aria-label="Asesor virtual"
+    aria-hidden="true"
+  >
+    <header class="advisor-header">
+      <div class="advisor-agent">
+        <div class="advisor-avatar" aria-hidden="true"><svg  xmlns="http://www.w3.org/2000/svg" width="24" height="24"  
+fill="currentColor" viewBox="0 0 24 24" >
+<!--Boxicons v3.0.8 https://boxicons.com | License  https://docs.boxicons.com/free-->
+<path d="M21 17V6c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v11c0 .37.11.7.28 1H2v2h20v-2h-1.28c.17-.3.28-.63.28-1M5 6h14v11-1H5z"></path>
+</svg></div>
+
+        <div>
+          <strong>Asesor Virtual</strong>
+          <span>
+            <i aria-hidden="true"></i>
+            Disponible ahora
+          </span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="advisor-close"
+        id="advisorClose"
+        aria-label="Cerrar asesor virtual"
+      >
+        ×
+      </button>
+    </header>
+
+    <div
+      class="advisor-body"
+      id="advisorMessages"
+      aria-live="polite"
+      aria-relevant="additions"
+    ></div>
+
+    <div
+      class="advisor-suggestions"
+      id="advisorSuggestions"
+      aria-label="Consultas sugeridas"
+    >
+      <button type="button" data-advisor="resumen">
+        Resumen
+      </button>
+
+      <button type="button" data-advisor="alta">
+        Alta prioridad
+      </button>
+
+      <button type="button" data-advisor="crear">
+        Crear ticket
+      </button>
+    </div>
+
+    <form class="advisor-input" id="advisorForm">
+      <input
+        type="text"
+        id="advisorInput"
+        name="question"
+        required
+        maxlength="500"
+        autocomplete="off"
+        placeholder="Escribe tu consulta..."
+        aria-label="Consulta al asesor"
+      >
+
+      <button type="submit" aria-label="Enviar consulta">
+        ➤
+      </button>
+    </form>
+
+    <div class="advisor-note">
+      Asesor virtual local. Los datos permanecen en este navegador.
+    </div>
+  </section>
+
+  <!-- JavaScript del panel administrativo -->
+  <script src="./assets/js/admin.js" defer></script>
+  <script src="./assets/js/theme.js" defer></script>
+</body>
+</html>
